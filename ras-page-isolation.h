@@ -49,6 +49,7 @@ struct page_record {
 
 enum row_location_type {
 	GHES,
+	AMD,
 	DSM
 };
 
@@ -76,8 +77,17 @@ enum dsm_location_field_index {
 	DSM_FIELD_NUM
 };
 
+enum amd_location_field_index {
+	AMD_BankGroup,
+	AMD_Bank,
+	AMD_Row,
+	AMD_ChipSelect,
+	AMD_FIELD_NUM
+};
+
 #define  APEI_FIELD_NUM_CONST ((int)APEI_FIELD_NUM)
 #define  DSM_FIELD_NUM_CONST ((int)DSM_FIELD_NUM)
+#define  AMD_FIELD_NUM_CONST ((int)AMD_FIELD_NUM)
 
 struct memory_location_field {
 	const char	*name;

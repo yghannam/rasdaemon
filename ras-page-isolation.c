@@ -532,6 +532,29 @@ static const struct memory_location_field dsm_fields[] = {
 	},
 };
 
+static const struct memory_location_field amd_fields[] = {
+	[AMD_ChipSelect] = {
+		.name = "ChipSelect",
+		.anchor_str = "ChipSelect:",
+		.value_base = 16
+	},
+	[AMD_BankGroup] = {
+		.name = "BankGroup",
+		.anchor_str = "BankGroup:",
+		.value_base = 16
+	},
+	[AMD_Bank] = {
+		.name = "Bank",
+		.anchor_str = "Bank:",
+		.value_base = 16
+	},
+	[AMD_Row] = {
+		.name = "Row",
+		.anchor_str = "Row:",
+		.value_base = 16
+	},
+};
+
 static void row_record_get_id(struct row_record *rr,
 			      char *buffer, unsigned int size)
 {
@@ -544,6 +567,9 @@ static void row_record_get_id(struct row_record *rr,
 	if (rr->type == GHES) {
 		field_num = APEI_FIELD_NUM_CONST;
 		fields = apei_fields;
+	} else if (rr->type == AMD) {
+		field_num = AMD_FIELD_NUM_CONST;
+		fields = amd_fields;
 	} else {
 		field_num = DSM_FIELD_NUM_CONST;
 		fields = dsm_fields;
@@ -576,6 +602,8 @@ static bool row_record_is_same_row(struct row_record *rr1,
 
 	if (rr1->type == GHES)
 		field_num = APEI_FIELD_NUM_CONST;
+	else if (rr1->type == AMD)
+		field_num = AMD_FIELD_NUM_CONST;
 	else
 		field_num = DSM_FIELD_NUM_CONST;
 
@@ -639,6 +667,10 @@ static int parse_row_info(const char *detail, struct row_record *r)
 		fields = apei_fields;
 		field_num = APEI_FIELD_NUM_CONST;
 		r->type = GHES;
+	} else if (strstr(detail, "AMD")) {
+		fields = amd_fields;
+		field_num = AMD_FIELD_NUM_CONST;
+		r->type = AMD;
 	} else if (strstr(detail,  "ProcessorSocketId:")) {
 		fields = dsm_fields;
 		field_num = DSM_FIELD_NUM_CONST;
