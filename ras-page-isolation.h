@@ -78,10 +78,14 @@ enum dsm_location_field_index {
 };
 
 enum amd_location_field_index {
+	AMD_ChipSelect,
 	AMD_BankGroup,
 	AMD_Bank,
 	AMD_Row,
-	AMD_ChipSelect,
+	AMD_RankMul,
+	AMD_SubChannel,
+	/* Fields above identify a DRAM row; Column does not. */
+	AMD_Column,
 	AMD_FIELD_NUM
 };
 
@@ -103,8 +107,10 @@ struct page_addr {
 	time_t			start;
 };
 
-#define ROW_LOCATION_FIELDS_NUM (DSM_FIELD_NUM_CONST > APEI_FIELD_NUM_CONST ? \
-				 DSM_FIELD_NUM_CONST : APEI_FIELD_NUM_CONST)
+#define MAX2(a, b)		((a) > (b) ? (a) : (b))
+#define ROW_LOCATION_FIELDS_NUM MAX2(MAX2(DSM_FIELD_NUM_CONST, \
+					  APEI_FIELD_NUM_CONST), \
+				     AMD_FIELD_NUM_CONST)
 
 struct row_record {
 	LIST_ENTRY(row_record)	entry;
