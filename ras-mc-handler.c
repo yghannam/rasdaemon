@@ -15,7 +15,7 @@
 
 #include "ras-logger.h"
 #include "ras-mc-handler.h"
-#include "ras-page-isolation.h"
+#include "pfa/core.h"
 #include "ras-report.h"
 #include "trigger.h"
 #include "types.h"

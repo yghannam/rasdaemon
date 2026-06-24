@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "ras-cxl-handler.h"
-#include "ras-page-isolation.h"
+#include "pfa/core.h"
 #include "ras-logger.h"
 #include "ras-record.h"
 #include "ras-report.h"

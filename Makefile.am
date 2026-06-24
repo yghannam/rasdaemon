@@ -6,7 +6,7 @@
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --enable-all
 ACLOCAL_AMFLAGS=-I m4
-SUBDIRS = util man
+SUBDIRS = pfa util man
 
 SYSTEMD_SERVICES_IN = misc/rasdaemon.service.in
 SYSTEMD_SERVICES_IN += misc/ras-mc-ctl.service.in
@@ -169,7 +169,7 @@ if WITH_OPENBMC_UNIFIED_SEL
 endif
 
 if WITH_PFA
-   rasdaemon_SOURCES += rbtree.c ras-page-isolation.c
+   rasdaemon_SOURCES += rbtree.c
 endif
 
 if WITH_POISON_PAGE_STAT
@@ -193,6 +193,11 @@ if WITH_RERI
 endif
 
 rasdaemon_LDADD = -lpthread $(SQLITE3_LIBS) $(LIBTRACEEVENT_LIBS) $(LIBPCI_LIBS)
+
+if WITH_PFA
+   rasdaemon_LDADD += pfa/libpfa.a
+endif
+
 rasdaemon_CFLAGS = $(SQLITE3_CFLAGS) $(LIBTRACEEVENT_CFLAGS) $(LIBPCI_CFLAGS)
 
 include_HEADERS = config.h
@@ -224,7 +229,7 @@ include_HEADERS += ras-mc-handler.h
 include_HEADERS += ras-mce-handler.h
 include_HEADERS += ras-memory-failure-handler.h
 include_HEADERS += ras-non-standard-handler.h
-include_HEADERS += ras-page-isolation.h
+include_HEADERS += pfa/core.h
 include_HEADERS += ras-poison-page-stat.h
 include_HEADERS += ras-record.h
 include_HEADERS += ras-report.h

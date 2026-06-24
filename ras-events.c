@@ -34,7 +34,7 @@
 #include "ras-mc-handler.h"
 #include "ras-memory-failure-handler.h"
 #include "ras-non-standard-handler.h"
-#include "ras-page-isolation.h"
+#include "pfa/core.h"
 #include "ras-signal-handler.h"
 #include "ras-record.h"
 #include "ras-reri-handler.h"

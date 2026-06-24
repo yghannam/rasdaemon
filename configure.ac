@@ -8,6 +8,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_RANLIB
 LT_INIT
 
 X_AC_META
@@ -18,6 +19,7 @@ AC_CONFIG_FILES([
 	man/ras-mc-ctl.8
 	man/rasdaemon.1
 	misc/rasdaemon.spec
+	pfa/Makefile
 	util/Makefile
 	util/ras-mc-ctl
 ])
