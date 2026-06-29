@@ -75,12 +75,7 @@ static const struct memory_location_field amd_fields[] = {
 
 #define DFS_BASE "/sys/kernel/debug/amd_atl_prm/"
 
-/*
- * The number of column bits is system-specific and needs further
- * investigation. Using 5 bits (32 permutations) for now.
- */
-#define NUM_COL_BITS	5
-#define NUM_COL		(1 << NUM_COL_BITS)
+#define NUM_COL		(UINT16_MAX + 1)
 
 static int debugfs_write_int(const char *path, unsigned long long val)
 {
