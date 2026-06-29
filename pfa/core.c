@@ -585,6 +585,21 @@ static int parse_row_info(const char *detail, struct row_record *r)
 	return 0;
 }
 
+static int do_page_offline_action(unsigned long long addr)
+{
+	int ret;
+
+	if (row_offline_action == OFFLINE_SOFT_THEN_HARD) {
+		ret = do_page_offline(addr, OFFLINE_SOFT);
+		if (ret < 0)
+			ret = do_page_offline(addr, OFFLINE_HARD);
+	} else {
+		ret = do_page_offline(addr, row_offline_action);
+	}
+
+	return ret;
+}
+
 static void row_offline(struct row_record *rr, time_t time)
 {
 	int ret;
@@ -603,53 +618,49 @@ static void row_offline(struct row_record *rr, time_t time)
 	struct page_addr *page_info = NULL;
 	// do offline
 	unsigned long long addr_list[SAME_PAGE_IN_ROW];
+	enum pstate addr_state[SAME_PAGE_IN_ROW];
 	int addr_list_size = 0;
 
+	/* Gather all page addresses in the row if supported. */
 	if (rr->ops->gather_pages)
 		addr_list_size = rr->ops->gather_pages(rr->location_fields,
 						       addr_list,
 						       SAME_PAGE_IN_ROW);
 
+	/* Add unique addresses from error history. */
 	LIST_FOREACH(page_info, &rr->page_head, entry) {
-		/* Ignore offlined pages */
-		if (page_info->offlined == PAGE_OFFLINE &&
-		    addr_list_size < SAME_PAGE_IN_ROW) {
-			addr_list[addr_list_size++] = page_info->addr;
-			continue;
-		}
-
 		int found = 0;
 
 		for (int i = 0; i < addr_list_size; i++) {
-			if (addr_list[i] ==  page_info->addr) {
+			if (addr_list[i] == page_info->addr) {
 				found = 1;
 				break;
 			}
 		}
 
-		if (found) {
-			page_info->offlined = PAGE_OFFLINE;
-			continue;
-		}
+		if (!found && addr_list_size < SAME_PAGE_IN_ROW)
+			addr_list[addr_list_size++] = page_info->addr;
+	}
 
-		/* Time to silence this noisy page */
-		if (row_offline_action == OFFLINE_SOFT_THEN_HARD) {
-			ret = do_page_offline(page_info->addr, OFFLINE_SOFT);
-			if (ret < 0)
-				ret = do_page_offline(page_info->addr, OFFLINE_HARD);
-		} else {
-			ret = do_page_offline(page_info->addr, row_offline_action);
-		}
+	/* Offline each unique page. */
+	for (int i = 0; i < addr_list_size; i++) {
+		ret = do_page_offline_action(addr_list[i]);
 
-		page_info->offlined  = ret < 0 ? PAGE_OFFLINE_FAILED : PAGE_OFFLINE;
+		addr_state[i] = ret < 0 ? PAGE_OFFLINE_FAILED : PAGE_OFFLINE;
 
 		log(TERM, LOG_INFO,
 		    "Result of offlining page at %#llx of row %s: %s\n",
-		    page_info->addr, row_id, page_state[page_info->offlined]);
+		    addr_list[i], row_id, page_state[addr_state[i]]);
+	}
 
-		if (page_info->offlined == PAGE_OFFLINE &&
-		    addr_list_size < SAME_PAGE_IN_ROW)
-			addr_list[addr_list_size++] = page_info->addr;
+	/* Propagate results to all page_addr entries. */
+	LIST_FOREACH(page_info, &rr->page_head, entry) {
+		for (int i = 0; i < addr_list_size; i++) {
+			if (addr_list[i] == page_info->addr) {
+				page_info->offlined = addr_state[i];
+				break;
+			}
+		}
 	}
 }
 
