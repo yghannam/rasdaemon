@@ -17,6 +17,9 @@ struct pfa_vendor_ops {
 	int				field_num;
 	int				row_field_num;
 	bool				(*detect)(const char *detail);
+	int				(*gather_pages)(const unsigned long long *location_fields,
+							unsigned long long *addr_list,
+							int max);
 };
 
 #define PFA_MAX_FIELDS	9

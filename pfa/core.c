@@ -31,7 +31,7 @@ struct row_record {
 	LIST_ENTRY(row_record)	entry;
 	LIST_HEAD(page_listhead, page_addr)	page_head;
 	const struct pfa_vendor_ops	*ops;
-	int			location_fields[PFA_MAX_FIELDS];
+	unsigned long long	location_fields[PFA_MAX_FIELDS];
 	time_t			start;
 	unsigned long		count;
 };
@@ -483,10 +483,10 @@ static void row_record_get_id(struct row_record *rr,
 	size -= len;
 	for (int idx = 0; idx < field_num; idx++) {
 		if (idx == field_num - 1)
-			len = snprintf(buffer + pos, size, "%s:%d",
+			len = snprintf(buffer + pos, size, "%s:%llx",
 				       fields[idx].name, rr->location_fields[idx]);
 		else
-			len = snprintf(buffer + pos, size, "%s:%d,",
+			len = snprintf(buffer + pos, size, "%s:%llx,",
 				       fields[idx].name, rr->location_fields[idx]);
 
 		pos += len;
@@ -520,10 +520,11 @@ static void row_record_copy(struct row_record *dst, struct row_record *src)
 		dst->location_fields[i] = src->location_fields[i];
 }
 
-static int parse_value(const char *str, const char *anchor_str, int value_base, int *value)
+static int parse_value(const char *str, const char *anchor_str, int value_base,
+		       unsigned long long *value)
 {
 	char *start, *endptr;
-	int tmp;
+	unsigned long long tmp;
 
 	if (!str || !anchor_str || !value)
 		return 1;
@@ -535,7 +536,7 @@ static int parse_value(const char *str, const char *anchor_str, int value_base, 
 
 	errno = 0;
 	start = pos + strlen(anchor_str);
-	tmp = (int)strtol(start, &endptr, value_base);
+	tmp = strtoull(start, &endptr, value_base);
 
 	if (errno != 0) {
 		log(TERM, LOG_ERR, "%s error, start: %s, value_base: %d, errno: %d\n",
@@ -603,6 +604,11 @@ static void row_offline(struct row_record *rr, time_t time)
 	// do offline
 	unsigned long long addr_list[SAME_PAGE_IN_ROW];
 	int addr_list_size = 0;
+
+	if (rr->ops->gather_pages)
+		addr_list_size = rr->ops->gather_pages(rr->location_fields,
+						       addr_list,
+						       SAME_PAGE_IN_ROW);
 
 	LIST_FOREACH(page_info, &rr->page_head, entry) {
 		/* Ignore offlined pages */
