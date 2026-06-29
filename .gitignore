@@ -1,4 +1,6 @@
 .deps/
+.claude/
+.semcode.db/
 autom4te.cache/
 SRPMS/
 misc/rasdaemon.spec
